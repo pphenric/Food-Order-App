@@ -4,13 +4,13 @@ import { ICheckout, IOrder } from "../util/interfaces";
 import { createPortal } from "react-dom";
 import { CartContext } from "../contexts/contexts";
 
-export default function({pricetotal, checkoutDialogRef, cartdetails} : ICheckout) {
+export default function Checkout({pricetotal, checkoutDialogRef, cartdetails} : ICheckout) {
     const [dialogContainer, setDialogContainer] = useState<HTMLElement | null>(null);
     useEffect(() => {
         setDialogContainer(document.getElementById("dialog-container"));
     }, []);
 
-    const [data, action, isPending] = useActionState(handleForm, null);
+    const [_, action, isPending] = useActionState(handleForm, null);
     const [formData, setFormData] = useState<IOrder | null>(null);
     const [formErrorData, setFormErrorData] = useState<IOrder | null>(null);
 

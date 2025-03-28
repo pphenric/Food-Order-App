@@ -5,7 +5,7 @@ export async function GET() {
     const data = await runQuery("SELECT * FROM foods");
     return Response.json({ success: true, data });
   } catch (error) {
-    return Response.json({ success: false, error: 'Failed to GET response' }, { status: 500 });
+    return Response.json({ success: false, error: error}, { status: 500 });
   }
 }
 
@@ -23,6 +23,6 @@ export async function POST(request: Request) {
     const result = await runQuery(insertQuery);
     return Response.json({ success: true, data: result });
   } catch (error) {
-    return Response.json({ success: false, error: "Failed to insert order" }, { status: 500 });
+    return Response.json({ success: false, error: error}, { status: 500 });
   }
 }
