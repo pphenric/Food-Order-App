@@ -10,7 +10,7 @@ export default function Checkout({pricetotal, checkoutDialogRef, cartdetails} : 
         setDialogContainer(document.getElementById("dialog-container"));
     }, []);
 
-    const [_, action, isPending] = useActionState(handleForm, null);
+    const [, action, isPending] = useActionState(handleForm, null);
     const [formData, setFormData] = useState<IOrder | null>(null);
     const [formErrorData, setFormErrorData] = useState<IOrder | null>(null);
 
