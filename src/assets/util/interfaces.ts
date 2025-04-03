@@ -1,4 +1,4 @@
-import { RefObject } from "react";
+import { ReactNode, RefObject } from "react";
 
 export interface ICart {
     id: string,
@@ -6,6 +6,10 @@ export interface ICart {
     price: number,
     description: string,
     imgurl: string,
+}
+
+export interface ICartProviderProps {
+    children: ReactNode;
 }
 
 export interface ICartContext {

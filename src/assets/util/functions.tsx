@@ -2,14 +2,6 @@ import { RefObject, Dispatch, SetStateAction } from "react";
 import { ICart, ICartSummary, IOrder } from "./interfaces";
 import { ICartContext } from "./interfaces";
 
-export function createUniqueKey(len : number) : string {
-    len = len > 62 ? 62: len;
-    let key = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    key = Array.from(key, () => key[Math.floor(Math.random() * key.length)])
-        .join('').substring(0, len-1);
-    return key;
-}
-
 export async function getCartData(setCardData: Dispatch<SetStateAction<ICart[] | undefined>>) {
     fetch("/api/query")
     .then((res) => res.json())

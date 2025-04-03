@@ -1,11 +1,12 @@
 import { runQuery } from "@/src/lib/db";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
     const data = await runQuery("SELECT * FROM foods");
-    return Response.json({ success: true, data });
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    return Response.json({ success: false, error: error}, { status: 500 });
+    return NextResponse.json({ success: false, error: error }, { status: 500 });
   }
 }
 
@@ -23,6 +24,6 @@ export async function POST(request: Request) {
     const result = await runQuery(insertQuery);
     return Response.json({ success: true, data: result });
   } catch (error) {
-    return Response.json({ success: false, error: error}, { status: 500 });
+    return NextResponse.json({ success: false, error: error }, { status: 500 });
   }
 }

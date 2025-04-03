@@ -1,3 +1,5 @@
+"use client";
+
 import Cards from "./Cards";
 import { FaChevronCircleUp } from "react-icons/fa";
 

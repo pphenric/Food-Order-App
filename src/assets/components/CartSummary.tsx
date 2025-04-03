@@ -1,6 +1,7 @@
+import { Guid } from 'js-guid';
 import { createPortal } from "react-dom";
 import { FaMinus, FaPlus } from "react-icons/fa";
-import { createUniqueKey, getPriceTotal, handleCartSummary, handleModal, processCartData } from "../util/functions";
+import { getPriceTotal, handleCartSummary, handleModal, processCartData } from "../util/functions";
 import { useContext, useEffect, useRef, useState } from "react";
 import { CartContext, CartSummaryDialogContext } from "../contexts/contexts";
 import Checkout from "./Checkout";
@@ -27,7 +28,7 @@ export default function CartSummary() {
                 <dialog id="cart-summary" ref={cartSummaryDialogRef} open={false}>
                     <h2>Your Cart</h2>
                     {processedCartData.map((cartItem)=>
-                        <ol key={createUniqueKey(20)}>
+                        <ol key={String(Guid.newGuid())}>
                             <li>
                                 <p>{cartItem.name} - {cartItem.quantity} x €{cartItem.price}</p>
                                 <div>

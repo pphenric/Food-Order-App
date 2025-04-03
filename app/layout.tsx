@@ -6,11 +6,9 @@ export const metadata: Metadata = {
   description: "A food order app created with next.js",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout(
+  {children}: Readonly<{children: React.ReactNode}>
+) {
   return (
     <html lang="en">
       <body>
