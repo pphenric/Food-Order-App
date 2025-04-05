@@ -42,3 +42,10 @@ export interface ICheckout {
     checkoutDialogRef: RefObject<null>,
     cartdetails: ICartSummary[]
 }
+
+export interface IInsertOrderResult {
+    success: boolean;
+    data?: any; // Data on success (e.g., created order ID)
+    errors?: Record<string, string> | string[]; // Structured errors or raw message array/string
+    message?: string; // General error message for non-validation errors
+  };

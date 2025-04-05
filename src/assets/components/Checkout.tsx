@@ -1,5 +1,5 @@
 import { useEffect, useState, useActionState, useContext } from "react";
-import { checkInput, handleModal, insertOder } from "../util/functions";
+import { handleModal, insertOder, transformNestJsErrors } from "../util/functions";
 import { ICheckout, IOrder } from "../util/interfaces";
 import { createPortal } from "react-dom";
 import { CartContext } from "../contexts/contexts";
@@ -12,58 +12,49 @@ export default function Checkout({pricetotal, checkoutDialogRef, cartdetails} : 
 
     const [, action, isPending] = useActionState(handleForm, null);
     const [formData, setFormData] = useState<IOrder | null>(null);
-    const [formErrorData, setFormErrorData] = useState<IOrder | null>(null);
+    const [submissionErrors, setSubmissionErrors] = useState<Partial<IOrder> | null>(null);
 
     const cartContext = useContext(CartContext);
     if (!cartContext) throw new Error("CartContext must be used inside CartProvider");
     const { setCartData } = cartContext;
 
-    async function handleForm(previousState: IOrder | null, formData: FormData) {
+    async function handleForm(previousState: IOrder | null, formDomData: FormData) {
+        setSubmissionErrors(null); // Clear previous errors on new submission attempt
+
         const processedFormData: IOrder = {
-          name: formData.get('name') as string,
-          email: formData.get('email') as string,
-          street: formData.get('street') as string,
-          postalcode: formData.get('postalcode') as string,
-          city: formData.get('city') as string
-        };
-      
-        const computedFormErrorData: IOrder = {
-          name: checkInput('The Full name field', String(processedFormData.name), 3, false),
-          email: checkInput('The E-mail Address field', String(processedFormData.email), 3, true),
-          street: checkInput('The Street field', String(processedFormData.street), 3, false),
-          postalcode: checkInput('The Postal Code field', String(processedFormData.postalcode), 3, false),
-          city: checkInput('The City field', String(processedFormData.city), 3, false)
-        };
-      
-        setFormData(processedFormData);
-        setFormErrorData(computedFormErrorData);
-      
-        handleFormSubmission(processedFormData, computedFormErrorData);
-      
-        return processedFormData;
-      }
-      
-      function handleFormSubmission(formData: IOrder, formErrorData: IOrder) {
-        if (!(formData.name || formData.email || formData.street || formData.postalcode || formData.city)) {
-          return;
-        }
-        if (formErrorData.name || formErrorData.email || formErrorData.street || formErrorData.postalcode || formErrorData.city) {
-          return;
-        }
-        const order: IOrder = {
-          name: formData.name,
-          email: formData.email,
-          street: formData.street,
-          postalcode: formData.postalcode,
-          city: formData.city,
+          name: formDomData.get('name') as string,
+          email: formDomData.get('email') as string,
+          street: formDomData.get('street') as string,
+          postalcode: formDomData.get('postalcode') as string,
+          city: formDomData.get('city') as string,
           pricetotal: pricetotal,
           cartdetails: JSON.stringify(cartdetails)
         };
-        insertOder(order);
-        handleModal(checkoutDialogRef, 'close', undefined, '');
-        setFormData(null);
-        setCartData([]);
-      }
+
+        setFormData(processedFormData);
+
+        // --- Call API ---
+        const result = await insertOder(processedFormData);
+
+        // --- Process Result ---
+        if (result.success) {
+            console.log("Order submitted successfully!");
+            handleModal(checkoutDialogRef, 'close', undefined, '');
+            setFormData(null); // Clear saved form state on success
+            setCartData([]); // Clear cart on success
+            setSubmissionErrors(null); // Ensure errors are cleared
+        } else {
+            console.error("Submission failed:", result);
+            // If specific validation errors are returned, transform and set them
+            if (result.errors) {
+                 const formattedErrors = transformNestJsErrors(result.errors);
+                 setSubmissionErrors(formattedErrors);
+            } else {
+                 setSubmissionErrors({ name: result.message || "An unknown error occurred." });
+            }
+        }
+        return previousState;
+    }
 
     return (
         <>
@@ -71,43 +62,51 @@ export default function Checkout({pricetotal, checkoutDialogRef, cartdetails} : 
                 <form action={action}>
                     <dialog id="cart-summary" ref={checkoutDialogRef}>
                         <h2>Checkout</h2>
-                        <p id="checkout-p">Total Ammount: €{pricetotal.toFixed(2)}</p>
+                        <p id="checkout-p">Total Amount: €{pricetotal.toFixed(2)}</p>
+
                         <h4>Full Name</h4>
-                        <input type="text" name="name" className={formErrorData?.name ? "input-error" : undefined}
-                            defaultValue={typeof formData?.name === "string" ? formData.name : undefined}
+                        <input type="text" name="name"
+                            className={submissionErrors?.name ? "input-error" : undefined}
+                            defaultValue={typeof formData?.name === "string" ? formData.name : ''}
                         />
-                        {formErrorData?.name && <p id="input-error-p">{String(formErrorData?.name)}</p>}
+                        {submissionErrors?.name && <p id="input-error-p">{String(submissionErrors.name)}</p>}
+
                         <h4>E-mail Address</h4>
-                        <input type="text" name="email" className={formErrorData?.email ? "input-error" : undefined}
-                            defaultValue={typeof formData?.email === "string" ? formData.email : undefined}
+                        <input type="text" name="email"
+                            className={submissionErrors?.email ? "input-error" : undefined}
+                            defaultValue={typeof formData?.email === "string" ? formData.email : ''}
                         />
-                        {formErrorData?.email && <p id="input-error-p">{String(formErrorData?.email)}</p>}
+                        {submissionErrors?.email && <p id="input-error-p">{String(submissionErrors.email)}</p>}
+
                         <h4>Street</h4>
-                        <input type="text" name="street" className={formErrorData?.street ? "input-error" : undefined}
-                            defaultValue={typeof formData?.street === "string" ? formData.street : undefined}
+                        <input type="text" name="street"
+                            className={submissionErrors?.street ? "input-error" : undefined}
+                            defaultValue={typeof formData?.street === "string" ? formData.street : ''}
                         />
-                        {formErrorData?.street && <p id="input-error-p">{String(formErrorData?.street)}</p>}
+                        {submissionErrors?.street && <p id="input-error-p">{String(submissionErrors.street)}</p>}
+
                         <div id="checkout-div">
                             <div>
                                 <h4>Postal Code</h4>
-                                <input type="text" name="postalcode" className={formErrorData?.postalcode ? "input-error" : undefined}
-                                    defaultValue={typeof formData?.postalcode === "string" ? formData.postalcode : undefined}
+                                <input type="text" name="postalcode"
+                                    className={submissionErrors?.postalcode ? "input-error" : undefined}
+                                    defaultValue={typeof formData?.postalcode === "string" ? formData.postalcode : ''}
                                 />
-                                {formErrorData?.postalcode && <p id="input-error-p">{String(formErrorData?.postalcode)}</p>}
+                                {submissionErrors?.postalcode && <p id="input-error-p">{String(submissionErrors.postalcode)}</p>}
                             </div>
                             <div>
                                 <h4>City</h4>
-                                <input type="text" name="city" className={formErrorData?.city ? "input-error" : undefined}
-                                    defaultValue={typeof formData?.city === "string" ? formData.city : undefined}
+                                <input type="text" name="city"
+                                    className={submissionErrors?.city ? "input-error" : undefined}
+                                    defaultValue={typeof formData?.city === "string" ? formData.city : ''}
                                 />
-                                {formErrorData?.city && <p id="input-error-p">{String(formErrorData?.city)}</p>}
+                                {submissionErrors?.city && <p id="input-error-p">{String(submissionErrors.city)}</p>}
                             </div>
                         </div>
                         <section id="cart-summary-footer">
                             <button type="button" onClick={() => {
                                 handleModal(checkoutDialogRef, 'close', undefined, '');
-                                setFormData(null);
-                                setFormErrorData(null);
+                                setSubmissionErrors(null);
                             }}>Close</button>
                             <button disabled={isPending} id="cart-summary-footer-button">Submit Order</button>
                         </section>
