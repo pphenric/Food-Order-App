@@ -1,7 +1,6 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateOrderDto } from './dto/create-order.dto';
-import sql from 'sql-template-strings';
 
 @Injectable()
 export class OrdersService {

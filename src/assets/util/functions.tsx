@@ -74,11 +74,9 @@ export function transformNestJsErrors(errors: string[] | Record<string, string> 
             }
         });
     } else if (typeof errors === 'object') {
-         // If NestJS was configured to return an object like { field: message }
          Object.assign(errorObj, errors);
     } else if (typeof errors === 'string') {
-        // If it's just a single string message
-        errorObj.name = errors; // Assign to a default field for display
+        errorObj.name = errors;
     }
 
     return errorObj;
